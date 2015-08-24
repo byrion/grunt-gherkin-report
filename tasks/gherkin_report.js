@@ -49,19 +49,32 @@ module.exports = function(grunt) {
             featureName = parser.getFeatureName(fileContent),
             destPath = createNodeStructure(contentTree, filepath);
 
-        destPath.items.push({
-          name: featureName,
-          content: fileContent,
-          fileName: filepath
-        });
+        if ('manualOnly' in options && options.manualOnly) {
+          var feature = fileContent.match(/(Feature.*?)\n\n/g);
+          fileContent = fileContent.match(/(@manual[\s\S]*?)\n\n/g);
+          if (fileContent != null) {
+            fileContent = feature + fileContent.join('');
+          }
+        }
+
+        if (fileContent != null) {
+          destPath.items.push({
+            name: featureName,
+            content: fileContent,
+            fileName: filepath
+          });
+        }
       });
+    });
+
+    _.each(contentTree.children, function(f, key) {
+      if (f.items.length == 0) delete contentTree.children[key];
     });
 
     return contentTree;
   };
 
   grunt.registerMultiTask('gherkin_report', 'It saves your Cucumber/Specflow features files in a html format', function() {
-
     var options = this.options({}),
         data = JSON.stringify(getContentTree(this.files, options)),
         template = grunt.file.read(path.join(__dirname, 'template.html')),
