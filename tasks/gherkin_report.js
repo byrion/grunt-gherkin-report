@@ -50,10 +50,10 @@ module.exports = function(grunt) {
             destPath = createNodeStructure(contentTree, filepath);
 
         if ('manualOnly' in options && options.manualOnly) {
-          var feature = fileContent.match(/(Feature.*?)\n\n/g);
-          fileContent = fileContent.match(/(@manual[\s\S]*?)\n\n/g);
+          fileContent = fileContent.match(/(.*?@manual[\s\S]*?)(?:\n\n|$)/g);
+
           if (fileContent != null) {
-            fileContent = feature + fileContent.join('');
+            fileContent = 'Feature: ' + featureName + '\n\n' + fileContent.join('');
           }
         }
 
