@@ -49,20 +49,34 @@ module.exports = function(grunt) {
             featureName = parser.getFeatureName(fileContent),
             destPath = createNodeStructure(contentTree, filepath);
 
-        if ('manualOnly' in options && options.manualOnly) {
-          fileContent = fileContent.match(/(.*?@manual[\s\S]*?)(?:\n\n|$)/g);
+        if ('type' in options && options.type == 'manual') {
+            fileContent = fileContent.match(/(.*?@manual[\s\S]*?)(?:\n\n|$)/g);
 
-          if (fileContent != null) {
-            fileContent = 'Feature: ' + featureName + '\n\n' + fileContent.join('');
-          }
+            if (fileContent != null) {
+                fileContent = 'Feature: ' + featureName + '\n\n' + fileContent.join('');
+            }
+        } else if ('type' in options && options.type == 'automated') {
+            fileContent = fileContent.match(/((?:@|#).*?[\s\S]*?)(?:\n\n|$)/g);
+
+            for(var i=fileContent.length-1; i>=0; i--) {
+                if (fileContent[i].indexOf('@manual') > -1) {
+                    fileContent.splice(i, 1);
+                }
+            }
+
+            if (fileContent != null && fileContent.length > 0) {
+                fileContent = 'Feature: ' + featureName + '\n\n' + fileContent.join('');
+            } else {
+                fileContent = null;
+            }
         }
 
         if (fileContent != null) {
-          destPath.items.push({
-            name: featureName,
-            content: fileContent,
-            fileName: filepath
-          });
+            destPath.items.push({
+                name: featureName,
+                content: fileContent,
+                fileName: filepath
+            });
         }
       });
     });
